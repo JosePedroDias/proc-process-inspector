@@ -23,8 +23,6 @@ let startsWithSERRgx    = /^se\.sum_exec_runtime/;
 let endsWithIntAndUnitRgx = /([0-9]+) ([A-Za-z]+)$/;
 let endsWithFloatRgx      = /([0-9]+\.?[0-9]*)$/;
 
-
-
 let parseEndsWithIntAndUnit = function(line) {
     let parts = line.split(' ');
     let unit = parts.pop();
@@ -39,67 +37,69 @@ let parseEndsWithFloat = function(line) {
 
 
 
-let getMemory = function(pid, cb) {
-    let fn = ['/proc/', pid, '/status'].join('');
+let parseProcPidFileLines = function(pid, fileName, onLine, onDone) {
+    let fn = ['/proc', pid, fileName].join('/');
 	let l = ls();
 	let out = {};
+    let died = false;
 
 	l.on('data', function(line) {
-		if (startsWithVmSizeRgx.test(line)) {
-			out.size = parseEndsWithIntAndUnit(line);
-		}
-		else if (startsWithVmDataRgx.test(line)) {
-			out.data = parseEndsWithIntAndUnit(line);
-		}	
+        if (died) { return; }
+        try {
+            onLine(line, out);
+        } catch (ex) {
+            died = true;
+            onDone(ex);
+        }
 	});
 	
-	let died = false;
 	l.on('error', function(err) {
 		died = true;
-		cb(err);
+		onDone(err);
 	});
 	
 	l.on('close', function() {
 		if (died) { return; }
-		cb(null, out);
+		onDone(null, out);
 	});
 	
 	fs.createReadStream(fn)
 	.on('error', function(err) {
 		died = true;
-		cb(err);
+		onDone(err);
 	})
 	.pipe(l);
 };
 
+
+
+let getMemory = function(pid, cb) {
+    parseProcPidFileLines(
+        pid,
+        'status',
+        function(line, out) {
+            if (startsWithVmSizeRgx.test(line)) {
+                out.vmSize = parseEndsWithIntAndUnit(line);
+            }
+            else if (startsWithVmDataRgx.test(line)) {
+                out.vmData = parseEndsWithIntAndUnit(line);
+            }
+        },
+        cb
+    );
+};
+
 let getCPU = function(pid, cb) {
-	let fn = ['/proc/', pid, '/sched'].join('');
-	let l = ls();
-	let out = {};
-
-	l.on('data', function(line) {
-		if (startsWithSERRgx.test(line)) {
-			out.sumExecRuntime = parseEndsWithFloat(line);
-		}
-	});
-
-	let died = false;
-	l.on('error', function(err) {
-		died = true;
-		cb(err);
-	});
-	
-	l.on('close', function() {
-		if (died) { return; }
-		cb(null, out);
-	});
-
-	fs.createReadStream(fn)
-	.on('error', function(err) {
-		died = true;
-		cb(err);
-	})
-	.pipe(l);
+    parseProcPidFileLines(
+        pid,
+        'sched',
+        function(line, out) {
+            if (startsWithSERRgx.test(line)) {
+                out.sumExecRuntime = parseEndsWithFloat(line);
+            }
+        },
+        cb
+    );
 };
 
 

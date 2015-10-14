@@ -10,25 +10,28 @@ Requires procfs. Tested only on Linux so far.
 var insp = require('proc-process-inspector');
 
 insp.getMemory({Number} pid, {Function} cb);
+returns object with:
+{Number} vmSize - in bytes
+{Number} vmData - in bytes
 
 insp.getCPU({Number} pid, {Function} cb);
+returns object with:
+{Number} sumExecRuntime - in ?
 ```
 
 
-# Reference
+# To know more
 
-```
-/proc/<PID>
-	status table 1-2
-	stat   table 1-1 1-4
-	statm  table 1-3
-	io     table 1-
-	sched  http://www.linuxquestions.org/questions/linux-newbie-8/can-someone-explain-the-output-of-proc-pid-sched-4175412750/
+## Reference
 
-memory - status
-	VmSize, VmData
-cpu - sched
-	se.vm_...
-```
+* <https://www.kernel.org/doc/Documentation/filesystems/proc.txt>
+* <http://www.linuxquestions.org/questions/linux-newbie-8/can-someone-explain-the-output-of-proc-pid-sched-4175412750/>
 
-<https://www.kernel.org/doc/Documentation/filesystems/proc.txt>
+
+## What's being fetched currently
+
+* status (memory stats)
+	  * VmSize
+    * VmData
+* sched (cpu stats)
+	  * se.sum_exec_runtime
