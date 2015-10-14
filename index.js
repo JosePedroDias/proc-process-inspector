@@ -39,10 +39,10 @@ let parseEndsWithFloat = function(line) {
 
 
 
-var getMemory = function(pid, cb) {
-    var fn = ['/proc/', pid, '/status'].join('');
-	var l = ls();
-	var out = {};
+let getMemory = function(pid, cb) {
+    let fn = ['/proc/', pid, '/status'].join('');
+	let l = ls();
+	let out = {};
 
 	l.on('data', function(line) {
 		if (startsWithVmSizeRgx.test(line)) {
@@ -53,7 +53,7 @@ var getMemory = function(pid, cb) {
 		}	
 	});
 	
-	var died = false;
+	let died = false;
 	l.on('error', function(err) {
 		died = true;
 		cb(err);
@@ -72,10 +72,10 @@ var getMemory = function(pid, cb) {
 	.pipe(l);
 };
 
-var getCPU = function(pid, cb) {
-	var fn = ['/proc/', pid, '/sched'].join('');
-	var l = ls();
-	var out = {};
+let getCPU = function(pid, cb) {
+	let fn = ['/proc/', pid, '/sched'].join('');
+	let l = ls();
+	let out = {};
 
 	l.on('data', function(line) {
 		if (startsWithSERRgx.test(line)) {
@@ -83,7 +83,7 @@ var getCPU = function(pid, cb) {
 		}
 	});
 
-	var died = false;
+	let died = false;
 	l.on('error', function(err) {
 		died = true;
 		cb(err);
