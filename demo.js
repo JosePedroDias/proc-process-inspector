@@ -2,7 +2,7 @@ var ppInspector = require('./index');
 
 
 
-var pid = 32724;
+var pid = 1197;
 
 ppInspector.getMemory(pid, function(err, out) {
 	console.log(err, out);
